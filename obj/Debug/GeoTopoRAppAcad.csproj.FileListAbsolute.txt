@@ -1,0 +1,6 @@
+D:\Csharp\GeoTopoRApp\GeoTopoRAppAcad\obj\Debug\GeoTopoRAppAcad.csproj.AssemblyReference.cache
+D:\Csharp\GeoTopoRApp\GeoTopoRAppAcad\obj\Debug\GeoTopoRAppAcad.csproj.CoreCompileInputs.cache
+D:\Csharp\GeoTopoRApp\GeoTopoRAppAcad\bin\Debug\GeoTopoRAppAcad.dll
+D:\Csharp\GeoTopoRApp\GeoTopoRAppAcad\bin\Debug\GeoTopoRAppAcad.pdb
+D:\Csharp\GeoTopoRApp\GeoTopoRAppAcad\obj\Debug\GeoTopoRAppAcad.dll
+D:\Csharp\GeoTopoRApp\GeoTopoRAppAcad\obj\Debug\GeoTopoRAppAcad.pdb
