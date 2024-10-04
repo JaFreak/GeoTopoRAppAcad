@@ -10,6 +10,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.IO;
 using System.Xml.Linq;
 using System.Net.Mail;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WorkWithComunications
 {
@@ -40,7 +41,8 @@ namespace WorkWithComunications
                 angle = 0;
             return angle;
         }
-        public Polyline CaseAxle()
+
+        public Polyline CaseAxle() // создаем полилинию из указанных пользователем точек
         {
             Polyline сaseAxlePline = new Polyline();
             while (true)
@@ -59,6 +61,23 @@ namespace WorkWithComunications
             return сaseAxlePline;
         }
 
+        public void CalculationAngleAndPointFromSegment2d(LineSegment2d takelineSegment2DHere, double offsetFromSegment, double objectHeight,
+            out double angleBySegment, out Point3d pointInTheMidleOfSegment)      //здесь из сегмента,расстояния от него (в обе стороны) и высоты текста,
+                                                                                  //расчитывается угол поворота объекта вдоль сегмента и координата точки в его середине
+        {
+            Vector2d caseAxleVector2D = (takelineSegment2DHere.StartPoint.GetVectorTo(takelineSegment2DHere.MidPoint));
+            Vector2d caseAxlePerpVector2D = caseAxleVector2D.GetPerpendicularVector().GetNormal();
+            caseAxlePerpVector2D = caseAxlePerpVector2D * ((offsetFromSegment / 2) + objectHeight);
+            Point2d pointForText2D = takelineSegment2DHere.StartPoint + caseAxleVector2D;
+            pointForText2D = pointForText2D + caseAxlePerpVector2D;
+            pointInTheMidleOfSegment = new Point3d(pointForText2D.X, pointForText2D.Y, 0);
+
+            Point3d segmentStartPoint = new Point3d(takelineSegment2DHere.StartPoint.X, takelineSegment2DHere.StartPoint.Y, 0);
+            Point3d segmentEndPoint = new Point3d(takelineSegment2DHere.EndPoint.X, takelineSegment2DHere.EndPoint.Y, 0);
+            Vector3d caseAxleVector3D = segmentStartPoint.GetVectorTo(segmentEndPoint);
+            double angelOfRotation = caseAxleVector3D.GetAngleTo(Vector3d.XAxis, -Vector3d.ZAxis);
+            angleBySegment = RotateAngleFix(angelOfRotation);
+        }
         public bool EntitysBoundIntersectCheck(Point3d centreOfEntity, Entity obj1, Entity obj2)
         {
             bool intersect = false;
@@ -135,7 +154,21 @@ namespace WorkWithComunications
             // Starts a new transaction with the Transaction Manager
             using (Transaction trans2 = dB.TransactionManager.StartTransaction())
             {
-                // Получение доступа к активному пространству (пространство модели или лист)
+                DBText caseSpecExT = new DBText();
+                MText caseSpecExMt = new MText();
+                double specificationHeight = 0;
+
+                if (caseTextExample.ObjectId.ObjectClass.DxfName == "TEXT")
+                {
+                    caseSpecExT = caseTextExample.ObjectId.GetObject(OpenMode.ForWrite) as DBText;
+                    specificationHeight = caseSpecExT.Height;
+                }
+                else
+                {
+                    caseSpecExMt = caseTextExample.ObjectId.GetObject(OpenMode.ForWrite) as MText;
+                    specificationHeight = caseSpecExMt.TextHeight;
+                }
+
                 BlockTableRecord currentSpace2 = trans2.GetObject(doc.Database.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
                 DBObjectCollection caseCreateCollection = new DBObjectCollection();
                 Polyline caseAxle = CaseAxle();
@@ -143,11 +176,7 @@ namespace WorkWithComunications
                     return;
                 else
                 {
-                    Vector3d caseAxleVector3D = (caseAxle.GetPoint3dAt(0).GetVectorTo(caseAxle.GetPoint3dAt(1)));
-                    caseAxleVector3D = caseAxleVector3D.GetNormal() * caseAxle.GetPoint3dAt(0).DistanceTo(caseAxle.GetPoint3dAt(1));
-                    Vector3d caseAxlePerpVector3D = caseAxleVector3D.GetPerpendicularVector().GetNormal();
-                    double angelOfRotation = caseAxleVector3D.GetAngleTo(Vector3d.XAxis, -Vector3d.ZAxis);
-                    double rotatAngle = RotateAngleFix(angelOfRotation);
+
 
                     if (caseAxle.NumberOfVertices < 2)
                     {
@@ -156,13 +185,11 @@ namespace WorkWithComunications
                     }
                     else
                     {
-                        //открываем для чтения
-
                         Polyline casePline = new Polyline();
                         Polyline casePline1 = new Polyline();
-                        Polyline casePline2 = new Polyline();                        
+                        Polyline casePline2 = new Polyline();
                         PromptDoubleOptions caseDiameterOptions = new PromptDoubleOptions("\nВведите диаметр футляра")
-                        {                            
+                        {
                             DefaultValue = caseDiameter,
                             UseDefaultValue = true
                         };
@@ -171,10 +198,6 @@ namespace WorkWithComunications
                             caseDiameter = 0.5;
                         else
                             caseDiameter = caseDiameterValue.Value;
-
-                        caseAxlePerpVector3D = caseAxlePerpVector3D * ((caseDiameter / 2) + 0.3);
-                        Point3d pointForText = caseAxle.GetPoint3dAt(0) + caseAxleVector3D;
-                        pointForText = pointForText + caseAxlePerpVector3D;
 
                         caseCreateCollection = caseAxle.GetOffsetCurves(caseDiameter / 2);
                         casePline1 = (Polyline)caseCreateCollection[0];
@@ -217,33 +240,55 @@ namespace WorkWithComunications
 
                             if (caseTextExample.ObjectId.ObjectClass.DxfName == "TEXT")
                             {
-                                DBText caseSpecEx = caseTextExample.ObjectId.GetObject(OpenMode.ForWrite) as DBText;
-                                DBText caseSpec = new DBText();
-                                caseSpec.TextString = caseTextValue;
-                                caseSpec.HorizontalMode = TextHorizontalMode.TextMid;
-                                caseSpec.Rotation = rotatAngle;
-                                caseSpec.AlignmentPoint = pointForText;
-                                caseSpec.Color = caseSpecEx.Color;
-                                caseSpec.Height = caseSpecEx.Height;
-                                caseSpec.Layer = caseSpecEx.Layer;
-                                caseSpec.TextStyleId = caseSpecEx.TextStyleId;
-                                currentSpace2.AppendEntity(caseSpec);
-                                trans2.AddNewlyCreatedDBObject(caseSpec, true);
+                                for (int s = 0; s < caseAxle.NumberOfVertices - 1; s++)
+                                {
+                                    DBText[] caseSpecifications = new DBText[caseAxle.NumberOfVertices - 1];
+                                    DBText caseSpecEx = caseTextExample.ObjectId.GetObject(OpenMode.ForWrite) as DBText;
+                                    caseSpecifications[s] = new DBText();
+                                    caseSpecifications[s].TextString = caseTextValue;
+                                    caseSpecifications[s].HorizontalMode = TextHorizontalMode.TextMid;
+                                    caseSpecifications[s].Color = caseSpecEx.Color;
+                                    caseSpecifications[s].Height = caseSpecEx.Height;
+                                    caseSpecifications[s].Layer = caseSpecEx.Layer;
+                                    caseSpecifications[s].TextStyleId = caseSpecEx.TextStyleId;
+                                    caseSpecifications[s].LineWeight = caseSpecEx.LineWeight;
+                                    caseSpecifications[s].Linetype = caseSpecEx.Linetype;
+
+                                    LineSegment2d casePart = caseAxle.GetLineSegment2dAt(s);
+                                    CalculationAngleAndPointFromSegment2d(casePart, caseDiameter, specificationHeight, out double rotatAngle, out Point3d pointForText);
+                                    caseSpecifications[s].Rotation = rotatAngle;
+                                    caseSpecifications[s].AlignmentPoint = pointForText;
+                                    currentSpace2.AppendEntity(caseSpecifications[s]);
+                                    trans2.AddNewlyCreatedDBObject(caseSpecifications[s], true);
+                                }
                             }
                             else
                             {
-                                MText caseSpecEx = caseTextExample.ObjectId.GetObject(OpenMode.ForWrite) as MText;
-                                MText caseSpec = new MText();
-                                caseSpec.Contents = caseTextValue;
-                                caseSpec.Attachment = AttachmentPoint.MiddleCenter;
-                                caseSpec.Location = pointForText;
-                                caseSpec.Rotation = rotatAngle;
-                                caseSpec.Color = caseSpecEx.Color;
-                                caseSpec.Height = caseSpecEx.Height;
-                                caseSpec.Layer = caseSpecEx.Layer;
-                                caseSpec.TextStyleId = caseSpecEx.TextStyleId;
-                                currentSpace2.AppendEntity(caseSpec);
-                                trans2.AddNewlyCreatedDBObject(caseSpec, true);
+                                for (int s = 0; s < caseAxle.NumberOfVertices - 1; s++)
+                                {
+                                    MText[] caseSpecifications = new MText[caseAxle.NumberOfVertices - 1];
+                                    MText caseSpecEx = caseTextExample.ObjectId.GetObject(OpenMode.ForWrite) as MText;
+                                    caseSpecifications[s] = new MText();
+                                    caseSpecifications[s].Contents = caseTextValue;
+                                    caseSpecifications[s].Attachment = AttachmentPoint.MiddleCenter;
+                                    caseSpecifications[s].Color = caseSpecEx.Color;
+                                    caseSpecifications[s].Height = caseSpecEx.Height;
+                                    caseSpecifications[s].Layer = caseSpecEx.Layer;
+                                    caseSpecifications[s].TextStyleId = caseSpecEx.TextStyleId;
+                                    caseSpecifications[s].TextHeight = caseSpecEx.TextHeight;
+                                    caseSpecifications[s].BackgroundFill = caseSpecEx.BackgroundFill;
+                                    caseSpecifications[s].BackgroundFillColor = caseSpecEx.BackgroundFillColor;
+                                    caseSpecifications[s].BackgroundScaleFactor = caseSpecEx.BackgroundScaleFactor;
+                                    caseSpecifications[s].LineWeight = caseSpecEx.LineWeight;
+                                    caseSpecifications[s].Linetype = caseSpecEx.Linetype;
+
+                                    LineSegment2d casePart = caseAxle.GetLineSegment2dAt(s);
+                                    CalculationAngleAndPointFromSegment2d(casePart, caseDiameter, specificationHeight, out double rotatAngle, out Point3d pointForText);
+                                    caseSpecifications[s].Location = pointForText;
+                                    caseSpecifications[s].Rotation = rotatAngle;
+                                    currentSpace2.AppendEntity(caseSpecifications[s]);
+                                    trans2.AddNewlyCreatedDBObject(caseSpecifications[s], true);
+                                }
                             }
                         }
                     }

@@ -7,6 +7,10 @@
       "RelativeMoniker": "D:0:0:{6E36437E-4B75-4287-8E61-54D739625E4B}|GeoTopoRAppAcad.csproj|solutionrelative:communicationcase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{6E36437E-4B75-4287-8E61-54D739625E4B}|GeoTopoRAppAcad.csproj|D:\\Csharp\\GeoTopoRApp\\GeoTopoRAppAcad\\changedimensiontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6E36437E-4B75-4287-8E61-54D739625E4B}|GeoTopoRAppAcad.csproj|solutionrelative:changedimensiontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{6E36437E-4B75-4287-8E61-54D739625E4B}|GeoTopoRAppAcad.csproj|D:\\Csharp\\GeoTopoRApp\\GeoTopoRAppAcad\\signbuildings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6E36437E-4B75-4287-8E61-54D739625E4B}|GeoTopoRAppAcad.csproj|solutionrelative:signbuildings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -18,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -31,12 +35,24 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "ChangeDimensionText.cs",
+              "DocumentMoniker": "D:\\Csharp\\GeoTopoRApp\\GeoTopoRAppAcad\\ChangeDimensionText.cs",
+              "RelativeDocumentMoniker": "ChangeDimensionText.cs",
+              "ToolTip": "D:\\Csharp\\GeoTopoRApp\\GeoTopoRAppAcad\\ChangeDimensionText.cs",
+              "RelativeToolTip": "ChangeDimensionText.cs",
+              "ViewState": "AQIAAAoAAAAAAAAAAAAqwBgAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-03T09:54:20.337Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "SignBuildings.cs",
               "DocumentMoniker": "D:\\Csharp\\GeoTopoRApp\\GeoTopoRAppAcad\\SignBuildings.cs",
               "RelativeDocumentMoniker": "SignBuildings.cs",
               "ToolTip": "D:\\Csharp\\GeoTopoRApp\\GeoTopoRAppAcad\\SignBuildings.cs",
               "RelativeToolTip": "SignBuildings.cs",
-              "ViewState": "AQIAAAYBAAAAAAAAAAAkwBYBAAAAAAAA",
+              "ViewState": "AQIAAN8AAAAAAAAAAAAkwPcAAAByAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-25T12:17:24.314Z"
             },
@@ -48,7 +64,7 @@
               "RelativeDocumentMoniker": "CommunicationCase.cs",
               "ToolTip": "D:\\Csharp\\GeoTopoRApp\\GeoTopoRAppAcad\\CommunicationCase.cs",
               "RelativeToolTip": "CommunicationCase.cs",
-              "ViewState": "AQIAAJ0AAAAAAAAAAAAkwKgAAAAqAAAA",
+              "ViewState": "AQIAAGwAAAAAAAAAAAA7wGsAAAAlAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-14T10:26:22.069Z",
               "EditorCaption": ""
