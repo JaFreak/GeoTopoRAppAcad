@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeDimensionText.cs" />
+    <Compile Include="RMMethods.cs" />
     <Compile Include="CommunicationCase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignBuildings.cs" />

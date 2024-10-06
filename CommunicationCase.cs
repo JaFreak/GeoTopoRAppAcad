@@ -11,6 +11,8 @@ using System.IO;
 using System.Xml.Linq;
 using System.Net.Mail;
 using static System.Net.Mime.MediaTypeNames;
+using RMMethods;
+
 
 namespace WorkWithComunications
 {
@@ -21,88 +23,6 @@ namespace WorkWithComunications
         public static PromptEntityResult caseLineExample = null;
         public static PromptEntityResult caseTextExample = null;
         public static Polyline casePolylineExample = new Polyline();
-
-
-        public double RotateAngleFix(double angle)
-        {
-            double sin = Math.Sin(angle);
-            double cos = Math.Cos(angle);
-            if (sin < 0 && cos > 0)
-                angle += 0;
-            else if (sin > 0 && cos > 0)
-                angle += 0;
-            else if (sin < 0 && cos < 0)
-                angle += Math.PI;
-            else if (sin > 0 && cos < 0)
-                angle -= Math.PI;
-            else if (sin == 0)
-                angle = 0;
-            else
-                angle = 0;
-            return angle;
-        }
-
-        public Polyline CaseAxle() // создаем полилинию из указанных пользователем точек
-        {
-            Polyline сaseAxlePline = new Polyline();
-            while (true)
-            {
-                PromptPointResult giveMePoint = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.Editor.GetPoint("\nУкажите точку по оси футляра. Нажмите Esc если достаточно");
-                if (giveMePoint.Status != PromptStatus.OK)
-                    break;
-                else
-                {
-                    Point3d caseAxlePoint3d = giveMePoint.Value;
-                    Point2d caseAxlePoint2d = new Point2d(caseAxlePoint3d.X, caseAxlePoint3d.Y);
-                    сaseAxlePline.AddVertexAt(сaseAxlePline.NumberOfVertices, caseAxlePoint2d, 0, 0, 0);
-                }
-            }
-
-            return сaseAxlePline;
-        }
-
-        public void CalculationAngleAndPointFromSegment2d(LineSegment2d takelineSegment2DHere, double offsetFromSegment, double objectHeight,
-            out double angleBySegment, out Point3d pointInTheMidleOfSegment)      //здесь из сегмента,расстояния от него (в обе стороны) и высоты текста,
-                                                                                  //расчитывается угол поворота объекта вдоль сегмента и координата точки в его середине
-        {
-            Vector2d caseAxleVector2D = (takelineSegment2DHere.StartPoint.GetVectorTo(takelineSegment2DHere.MidPoint));
-            Vector2d caseAxlePerpVector2D = caseAxleVector2D.GetPerpendicularVector().GetNormal();
-            caseAxlePerpVector2D = caseAxlePerpVector2D * ((offsetFromSegment / 2) + objectHeight);
-            Point2d pointForText2D = takelineSegment2DHere.StartPoint + caseAxleVector2D;
-            pointForText2D = pointForText2D + caseAxlePerpVector2D;
-            pointInTheMidleOfSegment = new Point3d(pointForText2D.X, pointForText2D.Y, 0);
-
-            Point3d segmentStartPoint = new Point3d(takelineSegment2DHere.StartPoint.X, takelineSegment2DHere.StartPoint.Y, 0);
-            Point3d segmentEndPoint = new Point3d(takelineSegment2DHere.EndPoint.X, takelineSegment2DHere.EndPoint.Y, 0);
-            Vector3d caseAxleVector3D = segmentStartPoint.GetVectorTo(segmentEndPoint);
-            double angelOfRotation = caseAxleVector3D.GetAngleTo(Vector3d.XAxis, -Vector3d.ZAxis);
-            angleBySegment = RotateAngleFix(angelOfRotation);
-        }
-        public bool EntitysBoundIntersectCheck(Point3d centreOfEntity, Entity obj1, Entity obj2)
-        {
-            bool intersect = false;
-            if (obj1.Bounds != null)
-            {
-                Point3d boundBoxMinPoint = obj1.Bounds.Value.MinPoint;
-                Point3d boundBoxMaxPoint = obj1.Bounds.Value.MaxPoint;
-                Polyline specBoundBox = new Polyline();
-                specBoundBox.AddVertexAt(0, new Point2d((centreOfEntity.X + boundBoxMinPoint.X), (centreOfEntity.Y + boundBoxMinPoint.Y)), 0, 0, 0);
-                specBoundBox.AddVertexAt(1, new Point2d((centreOfEntity.X + boundBoxMinPoint.X), (centreOfEntity.Y + boundBoxMaxPoint.Y)), 0, 0, 0);
-                specBoundBox.AddVertexAt(2, new Point2d((centreOfEntity.X + boundBoxMaxPoint.X), (centreOfEntity.Y + boundBoxMaxPoint.Y)), 0, 0, 0);
-                specBoundBox.AddVertexAt(3, new Point2d((centreOfEntity.X + boundBoxMaxPoint.X), (centreOfEntity.Y + boundBoxMinPoint.Y)), 0, 0, 0);
-                specBoundBox.Closed = true;
-                specBoundBox.Elevation = 0;
-                Point3dCollection charIntersectContur = new Point3dCollection();
-                specBoundBox.IntersectWith(obj2, Intersect.OnBothOperands, new Plane(), charIntersectContur, IntPtr.Zero, IntPtr.Zero);
-                if (charIntersectContur.Count > 0)
-                    intersect = true;
-            }
-            else
-                intersect = false;
-
-            return intersect;
-        }
-
 
         [CommandMethod("CaseCreate")]
         [CommandMethod("СоздатьФутляр")]
@@ -171,7 +91,7 @@ namespace WorkWithComunications
 
                 BlockTableRecord currentSpace2 = trans2.GetObject(doc.Database.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
                 DBObjectCollection caseCreateCollection = new DBObjectCollection();
-                Polyline caseAxle = CaseAxle();
+                Polyline caseAxle = RM.AxlePolyline();
                 if (caseAxle == null)
                     return;
                 else
@@ -255,7 +175,7 @@ namespace WorkWithComunications
                                     caseSpecifications[s].Linetype = caseSpecEx.Linetype;
 
                                     LineSegment2d casePart = caseAxle.GetLineSegment2dAt(s);
-                                    CalculationAngleAndPointFromSegment2d(casePart, caseDiameter, specificationHeight, out double rotatAngle, out Point3d pointForText);
+                                    RM.CalculationAngleAndPointFromSegment2d(casePart, caseDiameter, specificationHeight, out double rotatAngle, out Point3d pointForText);
                                     caseSpecifications[s].Rotation = rotatAngle;
                                     caseSpecifications[s].AlignmentPoint = pointForText;
                                     currentSpace2.AppendEntity(caseSpecifications[s]);
@@ -283,7 +203,7 @@ namespace WorkWithComunications
                                     caseSpecifications[s].Linetype = caseSpecEx.Linetype;
 
                                     LineSegment2d casePart = caseAxle.GetLineSegment2dAt(s);
-                                    CalculationAngleAndPointFromSegment2d(casePart, caseDiameter, specificationHeight, out double rotatAngle, out Point3d pointForText);
+                                    RM.CalculationAngleAndPointFromSegment2d(casePart, caseDiameter, specificationHeight, out double rotatAngle, out Point3d pointForText);
                                     caseSpecifications[s].Location = pointForText;
                                     caseSpecifications[s].Rotation = rotatAngle;
                                     currentSpace2.AppendEntity(caseSpecifications[s]);
